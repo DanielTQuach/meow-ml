@@ -3,7 +3,9 @@
 The outer split is stratified 10-fold on recordings, with a fixed seed, and
 the same indices are used for the DAG-HMM, the class-specific HMM, and the
 RBF-SVM. ``--group-by-cat`` replaces that split with ``GroupKFold`` on the
-cat id. The scaler for a fold is fit on that fold's training frames only.
+cat id. ``--one-cat`` trains each three-context cat alone and scores the
+other cats of the same breed and of the other breed. The scaler for a fold
+is fit on that fold's training frames only.
 """
 
 from __future__ import annotations
@@ -558,3 +560,286 @@ def run_search(
     print("\nFull grid on the closest setting:", flush=True)
     _print_summary(full_metrics)
     return summary
+
+
+def _class_counts(labels: NDArray[np.str_]) -> dict[str, int]:
+    return {label: int(np.sum(labels == label)) for label in LABELS}
+
+
+def _majority_label(counts: dict[str, int]) -> str:
+    """Most common training label. Ties break in F, I, B order."""
+
+    return max(LABELS, key=lambda label: (counts[label], -LABELS.index(label)))
+
+
+def _fixed_states(counts: dict[str, int]) -> int:
+    """Use 3 states unless a class is too small for the inner holdout."""
+
+    smallest = min(counts[label] for label in LABELS)
+    trainable = smallest if smallest <= 1 else smallest - 1
+    return max(1, min(3, trainable))
+
+
+def _recall_percent(
+    predicted: NDArray[np.str_],
+    truth: NDArray[np.str_],
+) -> dict[str, float | None]:
+    recall: dict[str, float | None] = {}
+    for label in LABELS:
+        mask = truth == label
+        if not np.any(mask):
+            recall[label] = None
+            continue
+        recall[label] = 100.0 * float(np.mean(predicted[mask] == truth[mask]))
+    return recall
+
+
+def _score_predictions(
+    predicted: NDArray[np.str_],
+    truth: NDArray[np.str_],
+) -> dict[str, object]:
+    return {
+        "accuracy": _accuracy(predicted, truth),
+        "recall": _recall_percent(predicted, truth),
+    }
+
+
+def _mean_std(values: list[float]) -> dict[str, float | list[float] | None]:
+    if not values:
+        return {"mean": None, "std": None, "values": []}
+    array = np.asarray(values, dtype=np.float64)
+    std = float(np.std(array, ddof=1)) if len(array) > 1 else 0.0
+    return {
+        "mean": float(np.mean(array)),
+        "std": std,
+        "values": [float(value) for value in values],
+    }
+
+
+def _direction_summary(rows: list[dict[str, object]], pool_key: str) -> dict[str, object]:
+    """Unweighted mean across training cats for one test pool."""
+
+    def pool_of(row: dict[str, object]) -> dict[str, object]:
+        pool = row[pool_key]
+        assert isinstance(pool, dict)
+        return pool
+
+    summary: dict[str, object] = {
+        "n_trainers": len(rows),
+        "majority": _mean_std(
+            [float(pool_of(row)["majority_accuracy"]) for row in rows]
+        ),
+    }
+    for model_name in ("dag_hmm", "class_specific_hmm", "rbf_svm"):
+        accuracies: list[float] = []
+        recall_values: dict[str, list[float]] = {label: [] for label in LABELS}
+        for row in rows:
+            block = pool_of(row)[model_name]
+            assert isinstance(block, dict)
+            accuracies.append(float(block["accuracy"]))
+            recall = block["recall"]
+            assert isinstance(recall, dict)
+            for label in LABELS:
+                if recall[label] is not None:
+                    recall_values[label].append(float(recall[label]))
+        summary[model_name] = _mean_std(accuracies)
+        summary[f"{model_name}_recall"] = {
+            label: _mean_std(recall_values[label]) for label in LABELS
+        }
+    return summary
+
+
+def run_one_cat(
+    sequences: list[NDArray[np.floating]],
+    recordings: list[Recording],
+    results_dir: Path,
+    n_jobs: int,
+    seed: int,
+) -> dict[str, object]:
+    """Train each three-context cat alone and score same-breed and other-breed cats."""
+
+    results_dir = Path(results_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+    labels = np.asarray([recording.label for recording in recordings], dtype=str)
+    cat_ids = np.asarray([recording.cat_id for recording in recordings], dtype=str)
+    breeds = np.asarray([recording.breed for recording in recordings], dtype=str)
+    by_cat: dict[str, NDArray[np.int_]] = {
+        cat_id: np.flatnonzero(cat_ids == cat_id).astype(int)
+        for cat_id in sorted(set(cat_ids.tolist()))
+    }
+
+    skipped: list[dict[str, object]] = []
+    trainers: list[tuple[str, str, NDArray[np.int_], dict[str, int]]] = []
+    for cat_id, indices in by_cat.items():
+        counts = _class_counts(labels[indices])
+        breed = str(breeds[int(indices[0])])
+        if min(counts.values()) < 1:
+            missing = [label for label in LABELS if counts[label] == 0]
+            skipped.append(
+                {
+                    "cat_id": cat_id,
+                    "breed": breed,
+                    "n": int(len(indices)),
+                    "class_counts": counts,
+                    "reason": f"missing {', '.join(missing)}",
+                }
+            )
+            continue
+        trainers.append((cat_id, breed, indices, counts))
+
+    print(
+        f"One-cat transfer: {len(trainers)} trainers, {len(skipped)} cats skipped.",
+        flush=True,
+    )
+    for row in skipped:
+        print(
+            f"  skip {row['cat_id']} {row['breed']}: {row['reason']} {row['class_counts']}",
+            flush=True,
+        )
+
+    fitted: list[dict[str, object]] = []
+    failures: list[dict[str, object]] = []
+    for cat_id, breed, train_idx, counts in trainers:
+        majority = _majority_label(counts)
+        state_attempts = [_fixed_states(counts)]
+        if state_attempts[0] != 1:
+            state_attempts.append(1)
+        train_sequences = [sequences[int(index)] for index in train_idx]
+        same_idx = np.flatnonzero((breeds == breed) & (cat_ids != cat_id)).astype(int)
+        other_idx = np.flatnonzero(breeds != breed).astype(int)
+        same_sequences = [sequences[int(index)] for index in same_idx]
+        other_sequences = [sequences[int(index)] for index in other_idx]
+        train_scaled, same_scaled = scale_sequences(train_sequences, same_sequences)
+        _, other_scaled = scale_sequences(train_sequences, other_sequences)
+        print(
+            f"\n{cat_id} {breed} n={len(train_idx)} "
+            f"counts={counts} majority={majority}",
+            flush=True,
+        )
+        dag: DAGHMM | None = None
+        class_hmm: ClassSpecificHMM | None = None
+        svm: UtteranceRbfSVM | None = None
+        n_states = state_attempts[0]
+        last_error = "fit was not attempted"
+        for n_states in state_attempts:
+            config = ModelConfig(
+                state_grid=(n_states,),
+                mix_grid=(1,),
+                n_iter=25,
+                n_jobs=n_jobs,
+                seed=seed,
+            )
+            try:
+                dag = DAGHMM(config).fit(train_scaled, labels[train_idx])
+                class_hmm = ClassSpecificHMM(config).fit(train_scaled, labels[train_idx])
+                svm = UtteranceRbfSVM(config).fit(train_scaled, labels[train_idx])
+                break
+            except Exception as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                dag = None
+                print(f"  states={n_states} failed: {last_error}", flush=True)
+        if dag is None or class_hmm is None or svm is None:
+            failures.append(
+                {
+                    "cat_id": cat_id,
+                    "breed": breed,
+                    "n": int(len(train_idx)),
+                    "class_counts": counts,
+                    "n_states": n_states,
+                    "error": last_error,
+                }
+            )
+            continue
+        print(f"  fitted with {n_states} states, 1 mixture", flush=True)
+
+        pools: dict[str, object] = {}
+        for pool_name, pool_idx, pool_sequences in (
+            ("same_breed", same_idx, same_scaled),
+            ("other_breed", other_idx, other_scaled),
+        ):
+            truth = labels[pool_idx]
+            pool = {
+                "n": int(len(pool_idx)),
+                "class_counts": _class_counts(truth),
+                "majority_label": majority,
+                "majority_accuracy": float(np.mean(truth == majority)),
+                "dag_hmm": _score_predictions(dag.predict(pool_sequences), truth),
+                "class_specific_hmm": _score_predictions(class_hmm.predict(pool_sequences), truth),
+                "rbf_svm": _score_predictions(svm.predict(pool_sequences), truth),
+            }
+            pools[pool_name] = pool
+            print(
+                f"  {pool_name}: n={pool['n']}  "
+                f"DAG {100.0 * float(pool['dag_hmm']['accuracy']):.1f}%  "
+                f"HMM {100.0 * float(pool['class_specific_hmm']['accuracy']):.1f}%  "
+                f"SVM {100.0 * float(pool['rbf_svm']['accuracy']):.1f}%  "
+                f"majority {100.0 * float(pool['majority_accuracy']):.1f}%",
+                flush=True,
+            )
+        fitted.append(
+            {
+                "cat_id": cat_id,
+                "breed": breed,
+                "n": int(len(train_idx)),
+                "class_counts": counts,
+                "n_states": n_states,
+                "n_mix": 1,
+                "majority_label": majority,
+                "same_breed": pools["same_breed"],
+                "other_breed": pools["other_breed"],
+            }
+        )
+
+    directions = {
+        "MC_to_MC": _direction_summary(
+            [row for row in fitted if row["breed"] == "MC"], "same_breed"
+        ),
+        "MC_to_EU": _direction_summary(
+            [row for row in fitted if row["breed"] == "MC"], "other_breed"
+        ),
+        "EU_to_EU": _direction_summary(
+            [row for row in fitted if row["breed"] == "EU"], "same_breed"
+        ),
+        "EU_to_MC": _direction_summary(
+            [row for row in fitted if row["breed"] == "EU"], "other_breed"
+        ),
+    }
+    summary = {
+        "hmm": {
+            "states": "min(3, smallest class count minus one holdout clip)",
+            "mixtures": 1,
+            "n_iter": 25,
+            "topology": "ergodic",
+            "length_normalize": False,
+            "features": "both",
+            "scaler": "training cat frames only",
+        },
+        "skipped": skipped,
+        "failures": failures,
+        "trainers": fitted,
+        "directions": directions,
+    }
+    out_path = results_dir / "summary.json"
+    out_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    print(f"\nWrote {out_path}", flush=True)
+    _print_directions(directions)
+    return summary
+
+
+def _print_directions(directions: dict[str, object]) -> None:
+    print("\nMean accuracy by transfer direction:")
+    for name, block in directions.items():
+        assert isinstance(block, dict)
+        parts = [f"{name} (n={block['n_trainers']})"]
+        for key, title in (
+            ("dag_hmm", "DAG"),
+            ("class_specific_hmm", "HMM"),
+            ("rbf_svm", "SVM"),
+            ("majority", "majority"),
+        ):
+            stats = block[key]
+            assert isinstance(stats, dict)
+            mean = stats["mean"]
+            text = "n/a" if mean is None else f"{100.0 * float(mean):.1f}%"
+            parts.append(f"{title} {text}")
+        print("  " + "  ".join(parts), flush=True)

@@ -28,6 +28,21 @@ The RBF-SVM is 2.6 points under the paper, and the flat class-specific HMM is 6.
 
 A later screen of nine settings is in `results/search/summary.json`: MFCC only, modulation only, both feature sets, left-to-right topology, no scaling, per-utterance centering, length-normalized likelihood, and a fixed 0.5 s handle cut in place of the Sohn trim. Each screen held the HMM at 5 states, 2 mixtures, and 10 EM iterations. The closest screen was MFCC after the handle cut. Its full grid, in `results/search/best-full/`, scored DAG-HMM 70.68% ± 11.11, class-specific HMM 70.00% ± 11.12, and RBF-SVM 73.86% ± 5.79, a gap of 40.9 points. Food recall stayed at 59.78%. Left-to-right and modulation-only were the weakest screens. Length normalization did not change the screen decisions. The original full grid above is still the closest run.
 
+## One-cat transfer
+
+`python main.py --one-cat` trains each cat that has at least one food, isolation, and brushing clip, then scores the other cats. Eleven of the 21 cats are missing a context and are skipped. The report is `results/one-cat/summary.json`. The HMM is frozen at 3 states and 1 mixture, and uses fewer states when a class has too few clips for that size (`BRA01`, `CAN01`, and `REG01` used 1 state; `MAG01` used 2). The run took about 2 minutes.
+
+Accuracy is the unweighted mean across training cats. The majority column is the training cat's most common label, scored on the same test clips.
+
+| Direction | DAG-HMM | Class HMM | RBF-SVM | Majority |
+| --- | --- | --- | --- | --- |
+| Maine Coon to other Maine Coons | 45.3% ± 6.6 | 45.1% ± 6.3 | 48.1% ± 8.3 | 38.8% ± 15.4 |
+| Maine Coon to European | 43.9% ± 14.2 | 43.8% ± 14.4 | 36.0% ± 12.8 | 43.7% ± 15.1 |
+| European to other Europeans | 35.1% ± 15.2 | 35.1% ± 15.2 | 32.0% ± 9.7 | 41.9% ± 15.6 |
+| European to Maine Coon | 37.3% ± 12.1 | 37.3% ± 12.1 | 40.7% ± 9.9 | 41.1% ± 12.5 |
+
+A model trained on one cat does not carry the three-way distinction to other cats. Same-breed transfer is not reliably better than other-breed transfer. Maine Coon trainers beat the majority baseline on other Maine Coons and land on that baseline for European cats. European trainers stay under the majority baseline on both breeds. At this size the DAG-HMM and the flat HMM make nearly the same decisions. Brushing recall for Maine Coon trainers falls to 5.0% on European cats, and food recall for European trainers falls to 7.3% on Maine Coons.
+
 ## Limitations
 
 - The public Zenodo release has 440 files. The paper trained on 448. The eight missing clips are not in this repository.
@@ -55,6 +70,7 @@ python main.py --smoke
 python main.py --data-dir data/raw --cache data/features_cache.npz
 python main.py --quick
 python main.py --group-by-cat
+python main.py --one-cat
 ```
 
 `--smoke` checks the filename parser, silence trimming, the 116-dimensional feature layout, DAG routing, and a tiny model fit. It does not need the corpus.
@@ -62,6 +78,8 @@ python main.py --group-by-cat
 `--quick` searches fewer HMM settings (`states` in {3, 5}, `mixtures` in {1, 2}, 10 EM iterations) so the wiring can be checked before the full grid.
 
 `--group-by-cat` swaps the stratified recording split for `GroupKFold` on the cat id. Those folds are uneven because a few cats contribute about 50 clips.
+
+`--one-cat` trains one cat at a time and tests the other cats of each breed. Details are in the one-cat transfer section.
 
 Reports are written to `results/metrics.json` and `results/confusion_matrix_dag.csv`.
 

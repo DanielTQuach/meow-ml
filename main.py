@@ -25,7 +25,14 @@ from src.dataset import (
     download_catmeows,
     missing_data_message,
 )
-from src.evaluate import evaluate, handle_cut_features, prepare_features, run_search, run_smoke
+from src.evaluate import (
+    evaluate,
+    handle_cut_features,
+    prepare_features,
+    run_one_cat,
+    run_search,
+    run_smoke,
+)
 from src.features import FeatureConfig
 from src.models import ModelConfig, quick_model_config
 
@@ -64,6 +71,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--group-by-cat",
         action="store_true",
         help="Evaluate with GroupKFold on cat id instead of stratified recording folds.",
+    )
+    parser.add_argument(
+        "--one-cat",
+        action="store_true",
+        help=(
+            "Train each cat that has all three contexts by itself, then score "
+            "same-breed and other-breed cats."
+        ),
     )
     parser.add_argument(
         "--quick",
@@ -131,6 +146,16 @@ def main(argv: list[str] | None = None) -> int:
         feature_config=FeatureConfig(),
         vad_config=VadConfig(),
     )
+    if args.one_cat:
+        run_one_cat(
+            sequences,
+            recordings,
+            results_dir=args.results_dir / "one-cat",
+            n_jobs=args.n_jobs,
+            seed=args.seed,
+        )
+        return 0
+
     if args.search:
         handle_sequences = handle_cut_features(
             recordings, args.cache.with_name("features_cache_handles.npz")

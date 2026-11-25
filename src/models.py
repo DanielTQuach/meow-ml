@@ -203,8 +203,12 @@ def inner_split(
         splitter = StratifiedShuffleSplit(
             n_splits=1, test_size=fraction, random_state=seed
         )
-        train_idx, val_idx = next(splitter.split(np.zeros(len(labels)), labels))
-        return train_idx.astype(int), val_idx.astype(int)
+        try:
+            train_idx, val_idx = next(splitter.split(np.zeros(len(labels)), labels))
+        except ValueError:
+            pass
+        else:
+            return train_idx.astype(int), val_idx.astype(int)
 
     train: list[int] = []
     val: list[int] = []
@@ -281,6 +285,7 @@ def _score_config(
             correct += int(predicted == label)
             total += 1
         if total == 0:
+            result["accuracy"] = 0.0
             result["error"] = "validation split has no sequences for this task"
             return result
         result["accuracy"] = correct / total

@@ -1,0 +1,200 @@
+{
+  "screen": [
+    {
+      "name": "both-ergodic-fold-raw",
+      "feature_view": "both",
+      "scaler_mode": "fold",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "vad",
+      "dag_hmm": 64.77272727272727,
+      "class_specific_hmm": 65.45454545454545,
+      "rbf_svm": 75.9090909090909,
+      "recall": {
+        "F": 40.21739130434783,
+        "I": 71.49321266968326,
+        "B": 70.86614173228347
+      },
+      "gap": 49.26363636363638
+    },
+    {
+      "name": "mfcc-ergodic-fold-raw",
+      "feature_view": "mfcc",
+      "scaler_mode": "fold",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "vad",
+      "dag_hmm": 65.68181818181819,
+      "class_specific_hmm": 65.90909090909092,
+      "rbf_svm": 76.13636363636364,
+      "recall": {
+        "F": 60.869565217391305,
+        "I": 66.5158371040724,
+        "B": 67.71653543307086
+      },
+      "gap": 47.67272727272726
+    },
+    {
+      "name": "tm-ergodic-fold-raw",
+      "feature_view": "tm",
+      "scaler_mode": "fold",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "vad",
+      "dag_hmm": 62.04545454545454,
+      "class_specific_hmm": 62.72727272727272,
+      "rbf_svm": 70.68181818181817,
+      "recall": {
+        "F": 45.65217391304348,
+        "I": 67.42081447963801,
+        "B": 64.56692913385827
+      },
+      "gap": 59.945454545454574
+    },
+    {
+      "name": "both-ltr-fold-raw",
+      "feature_view": "both",
+      "scaler_mode": "fold",
+      "topology": "left-to-right",
+      "length_normalize": false,
+      "source": "vad",
+      "dag_hmm": 56.36363636363636,
+      "class_specific_hmm": 57.95454545454546,
+      "rbf_svm": 75.9090909090909,
+      "recall": {
+        "F": 34.78260869565217,
+        "I": 57.918552036199095,
+        "B": 69.29133858267717
+      },
+      "gap": 65.17272727272729
+    },
+    {
+      "name": "both-ergodic-none-raw",
+      "feature_view": "both",
+      "scaler_mode": "none",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "vad",
+      "dag_hmm": 62.5,
+      "class_specific_hmm": 63.86363636363635,
+      "rbf_svm": 76.5909090909091,
+      "recall": {
+        "F": 36.95652173913044,
+        "I": 72.39819004524887,
+        "B": 63.77952755905512
+      },
+      "gap": 52.44545454545456
+    },
+    {
+      "name": "both-ergodic-utterance-raw",
+      "feature_view": "both",
+      "scaler_mode": "utterance",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "vad",
+      "dag_hmm": 64.31818181818181,
+      "class_specific_hmm": 63.63636363636363,
+      "rbf_svm": 72.72727272727273,
+      "recall": {
+        "F": 50.0,
+        "I": 76.47058823529412,
+        "B": 53.54330708661417
+      },
+      "gap": 54.718181818181826
+    },
+    {
+      "name": "both-ergodic-fold-lennorm",
+      "feature_view": "both",
+      "scaler_mode": "fold",
+      "topology": "ergodic",
+      "length_normalize": true,
+      "source": "vad",
+      "dag_hmm": 64.77272727272727,
+      "class_specific_hmm": 65.45454545454545,
+      "rbf_svm": 75.9090909090909,
+      "recall": {
+        "F": 40.21739130434783,
+        "I": 71.49321266968326,
+        "B": 70.86614173228347
+      },
+      "gap": 49.26363636363638
+    },
+    {
+      "name": "mfcc-handles-ergodic-fold-raw",
+      "feature_view": "mfcc",
+      "scaler_mode": "fold",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "handle-cut",
+      "dag_hmm": 67.72727272727273,
+      "class_specific_hmm": 68.18181818181819,
+      "rbf_svm": 73.86363636363636,
+      "recall": {
+        "F": 57.608695652173914,
+        "I": 73.75565610859728,
+        "B": 64.56692913385827
+      },
+      "gap": 45.627272727272725
+    },
+    {
+      "name": "both-handles-ergodic-fold-raw",
+      "feature_view": "both",
+      "scaler_mode": "fold",
+      "topology": "ergodic",
+      "length_normalize": false,
+      "source": "handle-cut",
+      "dag_hmm": 67.27272727272727,
+      "class_specific_hmm": 68.4090909090909,
+      "rbf_svm": 70.9090909090909,
+      "recall": {
+        "F": 55.43478260869565,
+        "I": 77.37556561085972,
+        "B": 58.267716535433074
+      },
+      "gap": 48.809090909090926
+    }
+  ],
+  "best_screen": {
+    "name": "mfcc-handles-ergodic-fold-raw",
+    "feature_view": "mfcc",
+    "scaler_mode": "fold",
+    "topology": "ergodic",
+    "length_normalize": false,
+    "source": "handle-cut",
+    "dag_hmm": 67.72727272727273,
+    "class_specific_hmm": 68.18181818181819,
+    "rbf_svm": 73.86363636363636,
+    "recall": {
+      "F": 57.608695652173914,
+      "I": 73.75565610859728,
+      "B": 64.56692913385827
+    },
+    "gap": 45.627272727272725
+  },
+  "full_grid": {
+    "dag_hmm": 70.68181818181817,
+    "class_specific_hmm": 70.0,
+    "rbf_svm": 73.86363636363636,
+    "recall": {
+      "F": 59.78260869565217,
+      "I": 78.73303167420815,
+      "B": 64.56692913385827
+    },
+    "gap": 40.85454545454547,
+    "feature_view": "mfcc",
+    "scaler_mode": "fold",
+    "topology": "ergodic",
+    "length_normalize": false,
+    "source": "handle-cut"
+  },
+  "paper_accuracy": {
+    "dag_hmm": 95.94,
+    "class_specific_hmm": 80.95,
+    "rbf_svm": 78.51
+  },
+  "paper_recall": {
+    "F": 100.0,
+    "I": 92.59,
+    "B": 95.24
+  }
+}

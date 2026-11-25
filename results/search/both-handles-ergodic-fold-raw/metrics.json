@@ -1,0 +1,465 @@
+{
+  "group_by_cat": false,
+  "feature_view": "both",
+  "scaler_mode": "fold",
+  "topology": "ergodic",
+  "length_normalize": false,
+  "n_recordings": 440,
+  "dag_hmm": {
+    "mean": 0.6727272727272727,
+    "std": 0.05047979166350812,
+    "folds": [
+      0.6590909090909091,
+      0.6818181818181818,
+      0.7045454545454546,
+      0.6363636363636364,
+      0.6590909090909091,
+      0.7272727272727273,
+      0.6818181818181818,
+      0.5681818181818182,
+      0.75,
+      0.6590909090909091
+    ]
+  },
+  "class_specific_hmm": {
+    "mean": 0.6840909090909091,
+    "std": 0.05404866358102112,
+    "folds": [
+      0.7272727272727273,
+      0.6818181818181818,
+      0.6590909090909091,
+      0.6136363636363636,
+      0.7045454545454546,
+      0.75,
+      0.7045454545454546,
+      0.5909090909090909,
+      0.75,
+      0.6590909090909091
+    ]
+  },
+  "rbf_svm": {
+    "mean": 0.7090909090909091,
+    "std": 0.08284983705752919,
+    "folds": [
+      0.7727272727272727,
+      0.7272727272727273,
+      0.6363636363636364,
+      0.6818181818181818,
+      0.7272727272727273,
+      0.7727272727272727,
+      0.7727272727272727,
+      0.6818181818181818,
+      0.7954545454545454,
+      0.5227272727272727
+    ]
+  },
+  "confusion_matrix_dag_percent": [
+    [
+      55.4348,
+      17.3913,
+      27.1739
+    ],
+    [
+      9.5023,
+      77.3756,
+      13.1222
+    ],
+    [
+      22.8346,
+      18.8976,
+      58.2677
+    ]
+  ],
+  "labels": [
+    "F",
+    "I",
+    "B"
+  ],
+  "recall": {
+    "F": 55.43478260869565,
+    "I": 77.37556561085972,
+    "B": 58.267716535433074
+  },
+  "paper_accuracy": {
+    "dag_hmm": 95.94,
+    "class_specific_hmm": 80.95,
+    "rbf_svm": 78.51
+  },
+  "paper_recall": {
+    "F": 100.0,
+    "I": 92.59,
+    "B": 95.24
+  },
+  "folds": [
+    {
+      "fold": 0,
+      "dag_hmm": 0.6590909090909091,
+      "class_specific_hmm": 0.7272727272727273,
+      "rbf_svm": 0.7727272727272727,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8771929824561403,
+        "F-vs-B": 0.575,
+        "I-vs-B": 0.7777777777777778
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.001
+      }
+    },
+    {
+      "fold": 1,
+      "dag_hmm": 0.6818181818181818,
+      "class_specific_hmm": 0.6818181818181818,
+      "rbf_svm": 0.7272727272727273,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8070175438596491,
+        "F-vs-B": 0.6,
+        "I-vs-B": 0.8095238095238095
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 2,
+      "dag_hmm": 0.7045454545454546,
+      "class_specific_hmm": 0.6590909090909091,
+      "rbf_svm": 0.6363636363636364,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8596491228070176,
+        "F-vs-B": 0.625,
+        "I-vs-B": 0.8571428571428571
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.001
+      }
+    },
+    {
+      "fold": 3,
+      "dag_hmm": 0.6363636363636364,
+      "class_specific_hmm": 0.6136363636363636,
+      "rbf_svm": 0.6818181818181818,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8245614035087719,
+        "F-vs-B": 0.6,
+        "I-vs-B": 0.8253968253968254
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.001
+      }
+    },
+    {
+      "fold": 4,
+      "dag_hmm": 0.6590909090909091,
+      "class_specific_hmm": 0.7045454545454546,
+      "rbf_svm": 0.7272727272727273,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8070175438596491,
+        "F-vs-B": 0.65,
+        "I-vs-B": 0.8095238095238095
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 1.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 5,
+      "dag_hmm": 0.7272727272727273,
+      "class_specific_hmm": 0.75,
+      "rbf_svm": 0.7727272727272727,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8245614035087719,
+        "F-vs-B": 0.65,
+        "I-vs-B": 0.7301587301587301
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 6,
+      "dag_hmm": 0.6818181818181818,
+      "class_specific_hmm": 0.7045454545454546,
+      "rbf_svm": 0.7727272727272727,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8245614035087719,
+        "F-vs-B": 0.775,
+        "I-vs-B": 0.7777777777777778
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.001
+      }
+    },
+    {
+      "fold": 7,
+      "dag_hmm": 0.5681818181818182,
+      "class_specific_hmm": 0.5909090909090909,
+      "rbf_svm": 0.6818181818181818,
+      "root_pair": [
+        "F",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8070175438596491,
+        "F-vs-B": 0.825,
+        "I-vs-B": 0.7619047619047619
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": "scale"
+      }
+    },
+    {
+      "fold": 8,
+      "dag_hmm": 0.75,
+      "class_specific_hmm": 0.75,
+      "rbf_svm": 0.7954545454545454,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8245614035087719,
+        "F-vs-B": 0.625,
+        "I-vs-B": 0.7936507936507936
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 9,
+      "dag_hmm": 0.6590909090909091,
+      "class_specific_hmm": 0.6590909090909091,
+      "rbf_svm": 0.5227272727272727,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8421052631578947,
+        "F-vs-B": 0.775,
+        "I-vs-B": 0.9047619047619048
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.001
+      }
+    }
+  ]
+}

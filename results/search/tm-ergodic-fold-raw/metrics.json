@@ -1,0 +1,465 @@
+{
+  "group_by_cat": false,
+  "feature_view": "tm",
+  "scaler_mode": "fold",
+  "topology": "ergodic",
+  "length_normalize": false,
+  "n_recordings": 440,
+  "dag_hmm": {
+    "mean": 0.6204545454545454,
+    "std": 0.0339644117749392,
+    "folds": [
+      0.5681818181818182,
+      0.6590909090909091,
+      0.6363636363636364,
+      0.5909090909090909,
+      0.6363636363636364,
+      0.6136363636363636,
+      0.6136363636363636,
+      0.5909090909090909,
+      0.6136363636363636,
+      0.6818181818181818
+    ]
+  },
+  "class_specific_hmm": {
+    "mean": 0.6272727272727272,
+    "std": 0.04037246240749765,
+    "folds": [
+      0.6136363636363636,
+      0.7045454545454546,
+      0.6136363636363636,
+      0.5681818181818182,
+      0.6590909090909091,
+      0.6363636363636364,
+      0.6590909090909091,
+      0.5909090909090909,
+      0.5909090909090909,
+      0.6363636363636364
+    ]
+  },
+  "rbf_svm": {
+    "mean": 0.7068181818181818,
+    "std": 0.05613222288740213,
+    "folds": [
+      0.7045454545454546,
+      0.75,
+      0.7045454545454546,
+      0.6136363636363636,
+      0.7272727272727273,
+      0.75,
+      0.7272727272727273,
+      0.6590909090909091,
+      0.7954545454545454,
+      0.6363636363636364
+    ]
+  },
+  "confusion_matrix_dag_percent": [
+    [
+      45.6522,
+      20.6522,
+      33.6957
+    ],
+    [
+      16.7421,
+      67.4208,
+      15.8371
+    ],
+    [
+      25.1969,
+      10.2362,
+      64.5669
+    ]
+  ],
+  "labels": [
+    "F",
+    "I",
+    "B"
+  ],
+  "recall": {
+    "F": 45.65217391304348,
+    "I": 67.42081447963801,
+    "B": 64.56692913385827
+  },
+  "paper_accuracy": {
+    "dag_hmm": 95.94,
+    "class_specific_hmm": 80.95,
+    "rbf_svm": 78.51
+  },
+  "paper_recall": {
+    "F": 100.0,
+    "I": 92.59,
+    "B": 95.24
+  },
+  "folds": [
+    {
+      "fold": 0,
+      "dag_hmm": 0.5681818181818182,
+      "class_specific_hmm": 0.6136363636363636,
+      "rbf_svm": 0.7045454545454546,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7894736842105263,
+        "F-vs-B": 0.625,
+        "I-vs-B": 0.7301587301587301
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 1,
+      "dag_hmm": 0.6590909090909091,
+      "class_specific_hmm": 0.7045454545454546,
+      "rbf_svm": 0.75,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7894736842105263,
+        "F-vs-B": 0.55,
+        "I-vs-B": 0.7777777777777778
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": "scale"
+      }
+    },
+    {
+      "fold": 2,
+      "dag_hmm": 0.6363636363636364,
+      "class_specific_hmm": 0.6136363636363636,
+      "rbf_svm": 0.7045454545454546,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7894736842105263,
+        "F-vs-B": 0.65,
+        "I-vs-B": 0.8571428571428571
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 3,
+      "dag_hmm": 0.5909090909090909,
+      "class_specific_hmm": 0.5681818181818182,
+      "rbf_svm": 0.6136363636363636,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8070175438596491,
+        "F-vs-B": 0.625,
+        "I-vs-B": 0.8095238095238095
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 4,
+      "dag_hmm": 0.6363636363636364,
+      "class_specific_hmm": 0.6590909090909091,
+      "rbf_svm": 0.7272727272727273,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8070175438596491,
+        "F-vs-B": 0.65,
+        "I-vs-B": 0.8412698412698413
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": "scale"
+      }
+    },
+    {
+      "fold": 5,
+      "dag_hmm": 0.6136363636363636,
+      "class_specific_hmm": 0.6363636363636364,
+      "rbf_svm": 0.75,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7894736842105263,
+        "F-vs-B": 0.7,
+        "I-vs-B": 0.8095238095238095
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.001
+      }
+    },
+    {
+      "fold": 6,
+      "dag_hmm": 0.6136363636363636,
+      "class_specific_hmm": 0.6590909090909091,
+      "rbf_svm": 0.7272727272727273,
+      "root_pair": [
+        "I",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7894736842105263,
+        "F-vs-B": 0.725,
+        "I-vs-B": 0.873015873015873
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": "scale"
+      }
+    },
+    {
+      "fold": 7,
+      "dag_hmm": 0.5909090909090909,
+      "class_specific_hmm": 0.5909090909090909,
+      "rbf_svm": 0.6590909090909091,
+      "root_pair": [
+        "F",
+        "B"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7368421052631579,
+        "F-vs-B": 0.8,
+        "I-vs-B": 0.7777777777777778
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 10.0,
+        "gamma": 0.001
+      }
+    },
+    {
+      "fold": 8,
+      "dag_hmm": 0.6136363636363636,
+      "class_specific_hmm": 0.5909090909090909,
+      "rbf_svm": 0.7954545454545454,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.7894736842105263,
+        "F-vs-B": 0.725,
+        "I-vs-B": 0.746031746031746
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.01
+      }
+    },
+    {
+      "fold": 9,
+      "dag_hmm": 0.6818181818181818,
+      "class_specific_hmm": 0.6363636363636364,
+      "rbf_svm": 0.6363636363636364,
+      "root_pair": [
+        "F",
+        "I"
+      ],
+      "pair_validation_accuracy": {
+        "F-vs-I": 0.8421052631578947,
+        "F-vs-B": 0.575,
+        "I-vs-B": 0.7936507936507936
+      },
+      "pair_params": {
+        "F-vs-I": [
+          5,
+          2
+        ],
+        "F-vs-B": [
+          5,
+          2
+        ],
+        "I-vs-B": [
+          5,
+          2
+        ]
+      },
+      "class_specific_params": [
+        5,
+        2
+      ],
+      "svm_params": {
+        "C": 100.0,
+        "gamma": 0.001
+      }
+    }
+  ]
+}

@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
+from sklearn.metrics import f1_score, precision_recall_fscore_support
 from sklearn.model_selection import GroupKFold, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
@@ -154,6 +155,54 @@ def _confusion_percent(
     return 100.0 * matrix / row_sums
 
 
+def _f1_report(
+    truth: NDArray[np.str_] | list[str],
+    predicted: NDArray[np.str_] | list[str],
+) -> dict[str, object]:
+    """Per-class and averaged F1. Macro-F1 gives each context equal weight."""
+
+    y_true = np.asarray(truth, dtype=str)
+    y_pred = np.asarray(predicted, dtype=str)
+    precision, recall, f1, support = precision_recall_fscore_support(
+        y_true,
+        y_pred,
+        labels=list(LABELS),
+        zero_division=0,
+    )
+    per_class = {
+        label: {
+            "precision": 100.0 * float(precision[index]),
+            "recall": 100.0 * float(recall[index]),
+            "f1": 100.0 * float(f1[index]),
+            "support": int(support[index]),
+        }
+        for index, label in enumerate(LABELS)
+    }
+    return {
+        "per_class": per_class,
+        "macro_f1": 100.0
+        * float(
+            f1_score(
+                y_true,
+                y_pred,
+                labels=list(LABELS),
+                average="macro",
+                zero_division=0,
+            )
+        ),
+        "weighted_f1": 100.0
+        * float(
+            f1_score(
+                y_true,
+                y_pred,
+                labels=list(LABELS),
+                average="weighted",
+                zero_division=0,
+            )
+        ),
+    }
+
+
 def _print_summary(metrics: dict[str, object]) -> None:
     names = (
         ("dag_hmm", "DAG-HMM"),
@@ -185,6 +234,19 @@ def _print_summary(metrics: dict[str, object]) -> None:
             f"  {label}: {float(recall[label]):.2f}%  "
             f"(paper {PAPER_RECALL[label]:.2f}%)"
         )
+
+    f1_block = metrics.get("f1")
+    if isinstance(f1_block, dict):
+        print("\nMacro-F1 (each context weighted equally):")
+        for key, title in names:
+            report = f1_block[key]
+            assert isinstance(report, dict)
+            per_class = report["per_class"]
+            assert isinstance(per_class, dict)
+            cells = "  ".join(
+                f"{label} {float(per_class[label]['f1']):.1f}%" for label in LABELS
+            )
+            print(f"  {title}: {float(report['macro_f1']):.2f}%  ({cells})")
 
 
 def _write_reports(metrics: dict[str, object], results_dir: Path) -> None:
@@ -226,6 +288,8 @@ def evaluate(
     svm_scores: list[float] = []
     dag_truth: list[str] = []
     dag_predicted: list[str] = []
+    hmm_predicted: list[str] = []
+    svm_predicted: list[str] = []
     fold_details: list[dict[str, object]] = []
 
     for fold_index, (train_idx, test_idx) in enumerate(tqdm(splits, desc="folds")):
@@ -255,6 +319,8 @@ def evaluate(
         svm_scores.append(svm_acc)
         dag_truth.extend(str(label) for label in test_labels)
         dag_predicted.extend(str(label) for label in dag_pred)
+        hmm_predicted.extend(str(label) for label in hmm_pred)
+        svm_predicted.extend(str(label) for label in svm_pred)
 
         root = dag.root
         root_name = "none" if root is None else f"{root[0]}-vs-{root[1]}"
@@ -304,6 +370,11 @@ def evaluate(
         "confusion_matrix_dag_percent": confusion.round(4).tolist(),
         "labels": list(LABELS),
         "recall": recall,
+        "f1": {
+            "dag_hmm": _f1_report(dag_truth, dag_predicted),
+            "class_specific_hmm": _f1_report(dag_truth, hmm_predicted),
+            "rbf_svm": _f1_report(dag_truth, svm_predicted),
+        },
         "paper_accuracy": PAPER_ACCURACY,
         "paper_recall": PAPER_RECALL,
         "folds": fold_details,
@@ -598,9 +669,15 @@ def _score_predictions(
     predicted: NDArray[np.str_],
     truth: NDArray[np.str_],
 ) -> dict[str, object]:
+    report = _f1_report(truth, predicted)
+    per_class = report["per_class"]
+    assert isinstance(per_class, dict)
     return {
         "accuracy": _accuracy(predicted, truth),
         "recall": _recall_percent(predicted, truth),
+        "macro_f1": report["macro_f1"],
+        "weighted_f1": report["weighted_f1"],
+        "f1": {label: float(per_class[label]["f1"]) for label in LABELS},
     }
 
 
@@ -624,25 +701,33 @@ def _direction_summary(rows: list[dict[str, object]], pool_key: str) -> dict[str
         assert isinstance(pool, dict)
         return pool
 
+    majority_accuracy: list[float] = []
+    majority_f1: list[float] = []
+    for row in rows:
+        pool = pool_of(row)
+        majority_accuracy.append(float(pool["majority_accuracy"]))
+        majority_f1.append(float(pool["majority_macro_f1"]))
     summary: dict[str, object] = {
         "n_trainers": len(rows),
-        "majority": _mean_std(
-            [float(pool_of(row)["majority_accuracy"]) for row in rows]
-        ),
+        "majority": _mean_std(majority_accuracy),
+        "majority_macro_f1": _mean_std(majority_f1),
     }
     for model_name in ("dag_hmm", "class_specific_hmm", "rbf_svm"):
         accuracies: list[float] = []
+        macro_f1_values: list[float] = []
         recall_values: dict[str, list[float]] = {label: [] for label in LABELS}
         for row in rows:
             block = pool_of(row)[model_name]
             assert isinstance(block, dict)
             accuracies.append(float(block["accuracy"]))
+            macro_f1_values.append(float(block["macro_f1"]))
             recall = block["recall"]
             assert isinstance(recall, dict)
             for label in LABELS:
                 if recall[label] is not None:
                     recall_values[label].append(float(recall[label]))
         summary[model_name] = _mean_std(accuracies)
+        summary[f"{model_name}_macro_f1"] = _mean_std(macro_f1_values)
         summary[f"{model_name}_recall"] = {
             label: _mean_std(recall_values[label]) for label in LABELS
         }
@@ -758,11 +843,13 @@ def run_one_cat(
             ("other_breed", other_idx, other_scaled),
         ):
             truth = labels[pool_idx]
+            majority_scores = _score_predictions(np.full(len(truth), majority), truth)
             pool = {
                 "n": int(len(pool_idx)),
                 "class_counts": _class_counts(truth),
                 "majority_label": majority,
                 "majority_accuracy": float(np.mean(truth == majority)),
+                "majority_macro_f1": majority_scores["macro_f1"],
                 "dag_hmm": _score_predictions(dag.predict(pool_sequences), truth),
                 "class_specific_hmm": _score_predictions(class_hmm.predict(pool_sequences), truth),
                 "rbf_svm": _score_predictions(svm.predict(pool_sequences), truth),
@@ -770,10 +857,14 @@ def run_one_cat(
             pools[pool_name] = pool
             print(
                 f"  {pool_name}: n={pool['n']}  "
-                f"DAG {100.0 * float(pool['dag_hmm']['accuracy']):.1f}%  "
-                f"HMM {100.0 * float(pool['class_specific_hmm']['accuracy']):.1f}%  "
-                f"SVM {100.0 * float(pool['rbf_svm']['accuracy']):.1f}%  "
-                f"majority {100.0 * float(pool['majority_accuracy']):.1f}%",
+                f"DAG {100.0 * float(pool['dag_hmm']['accuracy']):.1f}% "
+                f"(F1 {float(pool['dag_hmm']['macro_f1']):.1f})  "
+                f"HMM {100.0 * float(pool['class_specific_hmm']['accuracy']):.1f}% "
+                f"(F1 {float(pool['class_specific_hmm']['macro_f1']):.1f})  "
+                f"SVM {100.0 * float(pool['rbf_svm']['accuracy']):.1f}% "
+                f"(F1 {float(pool['rbf_svm']['macro_f1']):.1f})  "
+                f"majority {100.0 * float(pool['majority_accuracy']):.1f}% "
+                f"(F1 {float(pool['majority_macro_f1']):.1f})",
                 flush=True,
             )
         fitted.append(
@@ -831,15 +922,19 @@ def _print_directions(directions: dict[str, object]) -> None:
     for name, block in directions.items():
         assert isinstance(block, dict)
         parts = [f"{name} (n={block['n_trainers']})"]
-        for key, title in (
-            ("dag_hmm", "DAG"),
-            ("class_specific_hmm", "HMM"),
-            ("rbf_svm", "SVM"),
-            ("majority", "majority"),
+        for key, title, scale in (
+            ("dag_hmm", "DAG", 100.0),
+            ("dag_hmm_macro_f1", "DAG F1", 1.0),
+            ("class_specific_hmm", "HMM", 100.0),
+            ("class_specific_hmm_macro_f1", "HMM F1", 1.0),
+            ("rbf_svm", "SVM", 100.0),
+            ("rbf_svm_macro_f1", "SVM F1", 1.0),
+            ("majority", "majority", 100.0),
+            ("majority_macro_f1", "majority F1", 1.0),
         ):
             stats = block[key]
             assert isinstance(stats, dict)
             mean = stats["mean"]
-            text = "n/a" if mean is None else f"{100.0 * float(mean):.1f}%"
+            text = "n/a" if mean is None else f"{scale * float(mean):.1f}%"
             parts.append(f"{title} {text}")
         print("  " + "  ".join(parts), flush=True)

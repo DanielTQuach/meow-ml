@@ -24,6 +24,8 @@ The full grid is in `results/metrics.json`. It uses all 440 clips (`F` 92, `I` 2
 
 DAG-HMM recall on that run: `F` 59.78% (paper 100%), `I` 77.38% (92.59%), `B` 71.65% (95.24%). Fold accuracies ran from 63.6% to 77.3%. The sum of absolute gaps to the three published accuracies is 32.9 points.
 
+Macro-F1 gives food, isolation, and brushing equal weight, so the large isolation class cannot carry the score. From the saved DAG-HMM confusion counts it is 68.74%, against a weighted F1 of 72.64% and an accuracy of 72.05%. Per-class F1 is food 56.4%, isolation 82.4%, and brushing 67.4%. Always predicting isolation scores 50.2% accuracy and only 22.3% macro-F1. The class-specific HMM and RBF-SVM predictions were not saved with that run, so their F1 is not in `results/metrics.json`. Later runs write macro-F1 for all three models.
+
 The RBF-SVM is 2.6 points under the paper, and the flat class-specific HMM is 6.4 points under. The DAG-HMM is the miss, at 72.05% against 95.94%, and it finished behind the flat HMM. Pairwise inner-validation accuracy was about 70–89%, so the first cut of the DAG is often wrong and cannot be revised.
 
 A later screen of nine settings is in `results/search/summary.json`: MFCC only, modulation only, both feature sets, left-to-right topology, no scaling, per-utterance centering, length-normalized likelihood, and a fixed 0.5 s handle cut in place of the Sohn trim. Each screen held the HMM at 5 states, 2 mixtures, and 10 EM iterations. The closest screen was MFCC after the handle cut. Its full grid, in `results/search/best-full/`, scored DAG-HMM 70.68% ± 11.11, class-specific HMM 70.00% ± 11.12, and RBF-SVM 73.86% ± 5.79, a gap of 40.9 points. Food recall stayed at 59.78%. Left-to-right and modulation-only were the weakest screens. Length normalization did not change the screen decisions. The original full grid above is still the closest run.
@@ -41,7 +43,16 @@ Accuracy is the unweighted mean across training cats. The majority column is the
 | European to other Europeans | 35.1% ± 15.2 | 35.1% ± 15.2 | 32.0% ± 9.7 | 41.9% ± 15.6 |
 | European to Maine Coon | 37.3% ± 12.1 | 37.3% ± 12.1 | 40.7% ± 9.9 | 41.1% ± 12.5 |
 
-A model trained on one cat does not carry the three-way distinction to other cats. Same-breed transfer is not reliably better than other-breed transfer. Maine Coon trainers beat the majority baseline on other Maine Coons and land on that baseline for European cats. European trainers stay under the majority baseline on both breeds. At this size the DAG-HMM and the flat HMM make nearly the same decisions. Brushing recall for Maine Coon trainers falls to 5.0% on European cats, and food recall for European trainers falls to 7.3% on Maine Coons.
+Macro-F1 on the same splits, again an unweighted mean across training cats:
+
+| Direction | DAG-HMM | Class HMM | RBF-SVM | Majority |
+| --- | --- | --- | --- | --- |
+| Maine Coon to other Maine Coons | 41.6% ± 7.0 | 41.4% ± 6.8 | 44.3% ± 7.4 | 18.2% ± 5.9 |
+| Maine Coon to European | 29.8% ± 12.4 | 29.7% ± 12.5 | 28.1% ± 11.5 | 19.8% ± 5.5 |
+| European to other Europeans | 30.4% ± 12.7 | 30.4% ± 12.7 | 26.8% ± 10.9 | 19.2% ± 5.7 |
+| European to Maine Coon | 24.5% ± 10.1 | 24.5% ± 10.1 | 33.6% ± 15.0 | 19.1% ± 4.5 |
+
+A model trained on one cat does not carry the three-way distinction to other cats. Same-breed transfer is not reliably better than other-breed transfer. On accuracy, Maine Coon trainers beat the majority baseline on other Maine Coons and land on that baseline for European cats, and European trainers stay under it on both breeds. Macro-F1 stays above the majority baseline in every direction because a one-label guess scores zero on the other two contexts, and it still sits near 25–42%. At this size the DAG-HMM and the flat HMM make nearly the same decisions. Brushing recall for Maine Coon trainers falls to 5.0% on European cats, and food recall for European trainers falls to 7.3% on Maine Coons.
 
 ## Limitations
 
